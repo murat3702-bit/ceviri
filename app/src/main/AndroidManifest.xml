@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://android.com"
-    xmlns:a="http://android.com">
+<manifest xmlns:android="http://android.com">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -23,8 +22,8 @@
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
-                <action a:name="android.intent.action.MAIN" />
-                <category a:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -35,8 +34,8 @@
             android:label="Çevir"
             android:theme="@style/Theme.Translucent">
             <intent-filter>
-                <action a:name="android.intent.action.PROCESS_TEXT" />
-                <category a:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
@@ -47,7 +46,7 @@
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
-                a:name="android.support.FILE_PROVIDER_PATHS"
+                android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
