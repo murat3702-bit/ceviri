@@ -28,7 +28,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
-        buildConfigField("String", "GEMINI_MODEL", "\"gemini-2.5-flash\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"gemini-3.8-flash\"")
     }
 
     buildTypes {
