@@ -48,8 +48,15 @@ class GeminiRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            if (e.isNetwork()) Result.failure(AppError("İnternet bağlantısı yok veya ağ hatası."))
-            else Result.failure(AppError("API hatası: ${e.localizedMessage ?: "bilinmiyor"}"))
+            val msg = e.localizedMessage ?: ""
+            // Sunucu yoğunluğu (503) veya eksik alan (MissingFieldException) durumlarını yakalıyoruz
+            if (msg.contains("MissingFieldException") || msg.contains("503") || msg.contains("UNAVAILABLE")) {
+                Result.failure(AppError("Sunucu şu an çok yoğun. Lütfen birkaç dakika sonra tekrar deneyin."))
+            } else if (e.isNetwork()) {
+                Result.failure(AppError("İnternet bağlantısı yok veya ağ hatası."))
+            } else {
+                Result.failure(AppError("API hatası: ${e.localizedMessage ?: "bilinmiyor"}"))
+            }
         }
     }
 
