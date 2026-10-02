@@ -20,7 +20,14 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: '17'
-        cache: 'gradle'
+
+    # ADIM: Eğer projede Gradle Wrapper (gradlew) dosyaları yoksa sunucu sıfırdan kendisi üretir
+    - name: Generate Gradle Wrapper if missing
+      run: |
+        if [ ! -f "gradlew" ]; then
+          echo "Gradlew dosyası bulunamadı, sunucuda sıfırdan üretiliyor..."
+          gradle wrapper --gradle-version 8.5
+        fi
 
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
