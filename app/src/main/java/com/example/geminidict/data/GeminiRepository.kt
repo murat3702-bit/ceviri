@@ -17,7 +17,15 @@ class GeminiRepository(
     private val model = GenerativeModel(
         modelName = modelName,
         apiKey = apiKey,
-        generationConfig = generationConfig { temperature = 0.2f }
+        generationConfig = generationConfig { 
+            temperature = 0.0f // Modelin yaratıcılığını sıfırlayarak en hızlı yanıt moduna alır
+        },
+        // Modelin gereksiz akıl yürütmesini ve hantallığını önleyen ana hız talimatı:
+        systemInstruction = content {
+            text("Sen ultra hızlı çalışan, doğrudan ve net bir sözlük ve çeviri motorusun. " +
+                 "Sana verilen komutları yerine getirirken ekstra hiçbir açıklama, yorum, " +
+                 "selamlaşma veya dipnot ekleme. Sadece senden istenen formattaki çeviri çıktısını en hızlı şekilde döndür.")
+        }
     )
 
     suspend fun translateText(input: String, dir: Direction = Direction.AUTO): Result<String> = call {
