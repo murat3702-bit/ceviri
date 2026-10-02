@@ -13,7 +13,9 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 val geminiKey: String = System.getenv("GEMINI_API_KEY")
-    ?: localProps.getProperty("gemini.api.key")
+    ?: (if (localProps.containsKey("gemini.api.key")) localProps.getProperty("gemini.api.key") else "")
+
+
 
 android {
     namespace = "com.example.geminidict"
