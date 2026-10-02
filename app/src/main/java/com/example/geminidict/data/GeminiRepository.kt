@@ -39,27 +39,45 @@ class GeminiRepository(
         })
     }
 
+    // YENİ EKLENEN VE OTOMATİK TEKRAR DENEYEN HIZLI DÖNGÜ FONKSİYONU:
     private suspend fun call(block: suspend () -> GenerateContentResponse): Result<String> {
         if (apiKey.isBlank()) return Result.failure(AppError("API anahtarı tanımlı değil."))
-        return try {
-            val text = block().text?.trim()
-            if (text.isNullOrEmpty()) Result.failure(AppError("Sonuç boş döndü."))
-            else Result.success(text)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            val msg = e.localizedMessage ?: ""
-            // Sunucu yoğunluğu (503) veya eksik alan (MissingFieldException) durumlarını yakalıyoruz
-            if (msg.contains("MissingFieldException") || msg.contains("503") || msg.contains("UNAVAILABLE")) {
-                Result.failure(AppError("Sunucu şu an çok yoğun. Lütfen birkaç dakika sonra tekrar deneyin."))
-            } else if (e.isNetwork()) {
-                Result.failure(AppError("İnternet bağlantısı yok veya ağ hatası."))
-            } else {
-                Result.failure(AppError("API hatası: ${e.localizedMessage ?: "bilinmiyor"}"))
+        
+        var attempts = 0
+        val maxAttempts = 3 // Yoğunluk veya hata anında arka planda en fazla 3 kez şansını deneyecek
+        
+        while (attempts < maxAttempts) {
+            try {
+                val text = block().text?.trim()
+                if (text.isNullOrEmpty()) return Result.failure(AppError("Sonuç boş döndü."))
+                return Result.success(text)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                attempts++
+                val msg = e.localizedMessage ?: ""
+                val isTransientError = msg.contains("MissingFieldException") || msg.contains("503") || msg.contains("UNAVAILABLE")
+                
+                // Eğer geçici bir 503/yoğunluk hatasıysa ve deneme sınırına ulaşmadıysak milisaniyeler içinde hemen tekrar dene
+                if (isTransientError && attempts < maxAttempts) {
+                    kotlinx.coroutines.delay(400L * attempts) // Çok kısa bekleyip döngüyü tekrar çalıştırır
+                    continue
+                }
+                
+                // Tüm denemeler tükendiyse veya internet tamamen yoksa hata arayüze paslanır
+                return if (e.isNetwork()) {
+                    Result.failure(AppError("İnternet bağlantısı yok veya ağ hatası."))
+                } else if (isTransientError) {
+                    Result.failure(AppError("Sunucu şu an çok yoğun. Lütfen birkaç dakika sonra tekrar deneyin."))
+                } else {
+                    Result.failure(AppError("API hatası: ${e.localizedMessage ?: "bilinmiyor"}"))
+                }
             }
         }
+        return Result.failure(AppError("Sunucu yanıt vermedi."))
     }
 
+    // ALT KISIMDA KALAN VE KORUNAN ORİJİNAL KODLARINIZ:
     private fun Throwable.isNetwork(): Boolean =
         generateSequence(this) { it.cause }.any { it is IOException }
 
